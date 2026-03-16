@@ -130,11 +130,15 @@ def savefile(data: Dict[str, str], dirpath: Union[str, Path], filename: str, ato
     save(data, filepath, atomic, mode)
 
 
-def savebatch(dataset: Dict[str, Dict[str, str]], dirpath: Union[str, Path], atomic=True, mode: int = 0o600):
+def savebatch(dataset: Dict[str, Dict[str, str]], dirpath: Union[str, Path], subdirpath: Dict[str, Union[str, Path]] = {}, atomic=True, mode: int = 0o600):
     dirpath = Path(dirpath)
     for datakey in dataset:
+        curr_subdirpath = Path("")
+        if not subdirpath:
+            curr_subdirpath = Path(subdirpath[datakey])
+
         safekey = _ensure_filename(datakey)
-        filepath = dirpath / safekey
+        filepath = dirpath / curr_subdirpath / safekey
         data = dataset[datakey]
         save(data, filepath, atomic, mode)
 
@@ -212,14 +216,14 @@ def loadfile(dirpath: Union[str, Path], filename: str) -> Dict[str, str]:
     return load(filepath)
 
 
-def loadbatch(dirpath: Union[str, Path], exts: Union[str, list[str]] = EXTDEFAULT) -> list[Dict[str, str]]:
+def loadbatch(dirpath: Union[str, Path], exts: Union[str, list[str]] = EXTDEFAULT) -> tuple[list[Dict[str, str]], list[Path]]:
     dirpath = Path(dirpath)
     _ensure_dir(dirpath)
 
     filepaths = _find_files(dirpath, exts)
     if not filepaths:
-        return []
-    return [load(filepath) for filepath in filepaths]
+        return [], []
+    return [load(filepath) for filepath in filepaths], [filepath.parent.relative_to(dirpath) for filepath in filepaths]
 
 
 def load(filepath: Union[str, Path]) -> Dict[str, str]:
