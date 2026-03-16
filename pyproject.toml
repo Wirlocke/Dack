@@ -1,0 +1,16 @@
+[build-system]
+requires      = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "dack"
+version = "0.1.0"
+description = "A short description of your project"
+readme = "README.md"
+license = { file = "LICENSE" }
+authors = [
+    { name = "Marisha Lozada-Norcross", email = "marishaloznorcross@gmail.com" },
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/dack.py"]
