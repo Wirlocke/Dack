@@ -107,30 +107,13 @@ def _find_files(dirpath: Union[str, Path], exts: Union[str, list[str]] = EXTDEFA
     return filepaths
 
 
-def _from_pydict(data: Dict[str, str]) -> str:
-    return '&>' + '\n&>'.join(f"{k.strip()}:{v.strip()}" for k, v in data.items())
-
-
-def _to_pydict(text: str) -> Dict[str, str]:
-    entries = text.split('&>')[1:]
-    dackdict: Dict[str, str] = {}
-    for entry in entries:
-        if not entry.strip():
-            continue
-        key, sep, value = entry.partition(':')
-        key = key.strip()
-        value = value.strip()
-        if key and sep:
-            if key in dackdict:
-                warnings.warn(f"Duplicate key '{key}', keeping first value")
-                continue
-            dackdict[key] = value
-    return dackdict
-
-
 # =========================
 # Saving Functions
 # =========================
+
+def from_pydict(data: Dict[str, str]) -> str:
+    return '&>' + '\n&>'.join(f"{k.strip()}:{v.strip()}" for k, v in data.items())
+
 
 def saveas(data: Dict[str, str], dirpath: Union[str, Path], filestem: str, fileext: str = EXTDEFAULT, atomic=True, mode: int = 0o600):
     dirpath = Path(dirpath)
@@ -160,7 +143,7 @@ def save(data: Dict[str, str], filepath: Union[str, Path], atomic=True, mode: in
     filepath = _ensure_file(filepath)
     _ensure_dir(filepath.parent)
 
-    dack = _from_pydict(data)
+    dack = from_pydict(data)
     encoded = dack.encode('utf-8')
 
     if atomic:
@@ -200,6 +183,23 @@ def save(data: Dict[str, str], filepath: Union[str, Path], atomic=True, mode: in
 # Loading Functions
 # =========================
 
+def to_pydict(text: str) -> Dict[str, str]:
+    entries = text.split('&>')[1:]
+    dackdict: Dict[str, str] = {}
+    for entry in entries:
+        if not entry.strip():
+            continue
+        key, sep, value = entry.partition(':')
+        key = key.strip()
+        value = value.strip()
+        if key and sep:
+            if key in dackdict:
+                warnings.warn(f"Duplicate key '{key}', keeping first value")
+                continue
+            dackdict[key] = value
+    return dackdict
+
+
 def loadfrom(dirpath: Union[str, Path], filestem: str, fileext: str = EXTDEFAULT) -> Dict[str, str]:
     dirpath = Path(dirpath)
     filepath = dirpath / (filestem + fileext)
@@ -236,7 +236,7 @@ def load(filepath: Union[str, Path]) -> Dict[str, str]:
     text = filepath.read_text(encoding='utf-8-sig', errors='replace')
     if not text:
         return {}
-    return _to_pydict(text)
+    return to_pydict(text)
 
 
 # =========================
@@ -244,6 +244,6 @@ def load(filepath: Union[str, Path]) -> Dict[str, str]:
 # =========================
 
 __all__ = [
-    'save', 'saveas', 'savefile', 'savebatch',
-    'load', 'loadfrom', 'loadfile', 'loadbatch'
+    'from_pydict', 'save', 'saveas', 'savefile', 'savebatch',
+    'to_pydict', 'load', 'loadfrom', 'loadfile', 'loadbatch'
 ]
